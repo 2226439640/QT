@@ -69,7 +69,103 @@
     </item>
    </layout>
   </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>70</y>
+     <width>651</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,5,3,1,5,3">
+    <item>
+     <widget class="QLabel" name="startDate">
+      <property name="text">
+       <string>开始时间:</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDateEdit" name="sdEdit">
+      <property name="displayFormat">
+       <string>yyyy-MM-dd</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QLabel" name="endDate">
+      <property name="text">
+       <string>结束时间</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDateEdit" name="edEdit">
+      <property name="displayFormat">
+       <string>yyyy-MM-dd</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="horizontalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>130</y>
+     <width>651</width>
+     <height>341</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QPushButton" name="pushButton_2">
+      <property name="text">
+       <string>查看净值</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="PlotWidget" name="widget" native="true"/>
+    </item>
+   </layout>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QWidget</extends>
+   <header>pyqtgraph/core</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

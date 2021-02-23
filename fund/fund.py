@@ -8,7 +8,10 @@ import copy
 import json
 from PySide2.QtWidgets import QApplication
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtCore import QFile
+from PySide2.QtCore import QFile, QDate
+import threading
+import pyqtgraph as pg
+from signals import Signals
 
 
 class Fund:
@@ -17,7 +20,10 @@ class Fund:
         file.open(QFile.ReadOnly)
         file.close()
 
-        self.ui = QUiLoader().load(file)
+        loader = QUiLoader()
+        loader.registerCustomWidget(pg.PlotWidget)
+        self.ui =loader.load(file)
+        self.signals = Signals()
         self._fundUrl = 'http://fund.eastmoney.com/data/rankhandler.aspx'
         self.FundDict = {}
         with open('Funds.json', mode='r', encoding='utf-8') as fp:
@@ -26,6 +32,13 @@ class Fund:
         self.ui.search.textChanged.connect(self.findFund)
         self.ui.search.returnPressed.connect(lambda: self.ui.fundsCB.addItems([self.FundDict[self.ui.search.text()]]))
         # self.ui.updateButton.clicked.connect(self.getAllFunds)
+        self.ui.pushButton_2.clicked.connect(self.DWJZ_update)
+
+        self.ui.widget.setTitle('历史净值', color='008080', size='12pt')
+        self.ui.widget.setLabel('left', '净值')
+        self.ui.widget.setLabel('bottom', '时间')
+        self.ui.widget.setBackground('w')
+        self.signals.LSJZ.connect(self.showLSJZ)
 
     def getAllFunds(self):
         data = {
@@ -91,6 +104,44 @@ class Fund:
             if funds.startswith(text):
                 res.append(funds)
         self.ui.fundsCB.addItems(res)
+
+    def DWJZ_update(self):
+        start_date = self.ui.sdEdit.date().toString('yyyy-MM-dd')
+        end_date = self.ui.edEdit.date().toString('yyyy-MM-dd')
+        thread = threading.Thread(target=self.getDWJZ, args=(self.ui.search.text(), start_date, end_date))
+        thread.start()
+
+    def getDWJZ(self, JZNo, sdate, edate):
+        url = 'http://api.fund.eastmoney.com/f10/lsjz'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/87.0.4280.66 Safari/537.36',
+            'Referer': 'http://fundf10.eastmoney.com/jjjz_%s.html' % JZNo
+        }
+        data = {
+            'callback': 'jQuery18303239680339937132_1614049287312',
+            'fundCode': JZNo,
+            'pageIndex': '1',
+            'pageSize': '20',
+            'startDate': sdate,
+            'endDate': edate,
+            '_': '1614049334689'
+        }
+        res = requests.get(url, headers=headers, params=data)
+        res.encoding = res.apparent_encoding
+        total = re.findall('"TotalCount":(\d+)', res.text)[0]
+        data['pageSize'] = int(total)
+        res = requests.get(url, headers=headers, params=data)
+        res.encoding = res.apparent_encoding
+        date_JJJZ = re.findall('(\d{4}-\d{2}-\d{2})|"DWJZ":"(\d+\.\d*)"', res.text)
+        self.signals.LSJZ.emit(date_JJJZ)
+
+    def showLSJZ(self, data):
+        date, JJJZ = [int(''.join(d[0].split('-'))) for d in data[::2]], [float(d[1]) for d in data[1::2]]
+        print(date)
+        print(JJJZ)
+        print(len(data), len(JJJZ))
+        self.ui.widget.plot(date, JJJZ, pen=pg.mkPen('b'))
 
 
 if __name__ == '__main__':
